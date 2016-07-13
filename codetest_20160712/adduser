@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+var process = require('process');
+var readline = require('readline');
+var fs = require('fs');
+var bcrypt = require('bcrypt');
+
+try {
+	var credentials = JSON.parse(fs.readFileSync('credentials.json'));
+} catch (e) {
+	if (e.code != 'ENOENT') {
+		process.exit(-1);
+	}
+	var credentials = {};
+}
+
+var rl = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout
+});
+
+rl.question("Username: ", function(user) {
+	rl.question("Password: ", function(pass) {
+		var salt = bcrypt.genSaltSync(10);
+		var hash = bcrypt.hashSync(pass, salt);
+		credentials[user] = hash;
+		fs.writeFileSync('credentials.json', JSON.stringify(credentials));
+		process.exit(0);
+	});
+});
+
